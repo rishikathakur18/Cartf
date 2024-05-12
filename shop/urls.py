@@ -10,5 +10,6 @@ urlpatterns = [
     path('search/', views.search, name='Search'),
     path("products/<int:myid>", views.productView, name="ProductView"), #here we can't use any whitespace between angle brackets
     path('checkout/', views.checkout, name='Checkout'),
+    # path('handlerequest/', views.handlerequest, name='HandleRequest'),
 
 ]

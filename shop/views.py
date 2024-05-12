@@ -2,7 +2,7 @@ from django.shortcuts import render
 from .models import Product,Contact,Order,OrderUpdate
 from math import ceil
 import json
-
+# from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 from django.http import HttpResponse
 
@@ -51,17 +51,39 @@ def tracker(request):
                 updates = []
                 for item in update:
                     updates.append({'text': item.update_desc, 'time': item.timestamp})
-                    response = json.dumps([updates, order[0].items_json], default=str)
+                    response = json.dumps({"status":"success","updates":updates, "itemsJson": order[0].items_json}, default=str)
                 return HttpResponse(response)
             else:
-                return HttpResponse('{}')
+                return HttpResponse('{"status":"noitem"}')
         except Exception as e:
-            return HttpResponse('{}')
+            return HttpResponse('{"status":"error"}')
 
     return render(request, 'shop/tracker.html')
 
+def searchMatch(query, item):
+    # return true only if query matches the item 
+    if query in item.desc.lower() or query in item.product_name.lower() or query in  item.category.lower() or query in item.subcategory.lower():
+        return True
+    else: 
+        return False
+
 def search(request):
-    return HttpResponse("We are at search")
+    query = request.GET.get('search')
+    allProds = []
+    catprods = Product.objects.values('category', 'id')
+    cats = {item['category'] for item in catprods}
+    for cat in cats:
+        prodtemp = Product.objects.filter(category=cat)
+        prod = [item for item in prodtemp if searchMatch(query, item)]
+
+        n = len(prod)
+        nSlides = n // 4 + ceil((n / 4) - (n // 4))
+        if len(prod) != 0:
+            allProds.append([prod, range(1, nSlides), nSlides])
+    params = {'allProds': allProds, "msg": ""}
+    if len(allProds) == 0 or len(query)<4:
+        params = {'msg': "Please make sure to enter relevant search query"}
+    return render(request, 'shop/search.html', params)
 
 def productView(request, myid):
     # Fetch the product using the id
@@ -72,6 +94,7 @@ def productView(request, myid):
 def checkout(request):
     if request.method=="POST":
         items_json = request.POST.get('itemsJson','')
+        amount = request.POST.get('amount','')
         name = request.POST.get('name', '')
         email = request.POST.get('email', '')
         address = request.POST.get('address1', '') + " " + request.POST.get('address2', '')
@@ -81,12 +104,19 @@ def checkout(request):
         phone = request.POST.get('phone', '')
 
         order = Order(items_json=items_json, name=name, email=email, address = address, city=city,
-                        state=state,zip_code=zip_code, phone=phone)
+                        state=state,zip_code=zip_code, phone=phone, amount=amount)
         order.save()
         update = OrderUpdate(order_id=order.order_id, update_desc="The order has been placed")
         update.save()
         thank = True
         id = order.order_id
         return render(request, 'shop/checkout.html', {'thank':thank, 'id':id})
+        #Request paytm to transfer the amount to your account  after payment by user 
+        
     return render(request, 'shop/checkout.html')
+
+# @csrf_exempt
+# def handlerequest(request):
+#     #paytm will send you post request here
+
  
