@@ -1,6 +1,6 @@
 # Cartfolio
 
-Cartfolio is a Django-based E-commerce website that offers a full-featured web application for users to search for products, add them to their cart, proceed to checkout, track their orders, and get in touch through a contact page. Additionally, the website includes a blog functionality to enhance user engagement.
+Cartfolio is a robust and comprehensive E-commerce web application developed using the Django framework. It offers a seamless shopping experience by enabling users to search for products, add items to their cart, proceed to checkout, and track their orders. The platform also features a contact page for customer inquiries and support, as well as a blog section to engage and inform users.
 
 ## Features
 
